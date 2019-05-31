@@ -29,8 +29,8 @@ void DisassembleInstruction(uint8_t const* program, uint16_t pc) {
             } else if (op[0] == 0x00 && op[1] == 0xEE) {
                 printf("%s", "RET");
             } else {
-                // NOTE: This code is not longer in use
-                printf("Uninmplemented!");
+                // NOTE: 0000 actually is a legit code, but its no longer in use
+                printf("Unknown instruction!");
             }
             break;
         case 0x1:
@@ -88,14 +88,70 @@ void DisassembleInstruction(uint8_t const* program, uint16_t pc) {
                     printf("%-8s V%01x, V%01x", "SHIFTL", x, y);
                     break;
                 default:
-                    printf("%01x not handled yet!", nibble);
+                    printf("Unknown instruction!");
             }
             break;
         }
         case 0x9:
+            printf("%-8s V%01x, V%01x", "SKIP!=", op[0] & 0x0F, op[1] >> 4);
+            break;
+        case 0xA:
+            printf("%-8s I, %01x%02x", "MOVEI", op[0] & 0x0F, op[1]);
+            break;
+        case 0xB:
+            printf("%-8s V0, %01x%02x", "JUMP", op[0] & 0x0F, op[1]);
+            break;
+        case 0xC:
+            printf("%-8s V%01x, %02x", "RAND", op[0] & 0x0F, op[1]);
+            break;
+        case 0xD:
+            printf("%-8s V%01x, V%01x, %01x", "DRAW", op[0] & 0x0F, op[1] >> 4,
+                   op[1] & 0x0F);
+            break;
+        case 0xE:
+            if (op[1] == 0x9E) {
+                printf("%-8s V%01x", "SKIP==", op[0] & 0x0F);
+            } else if (op[1] == 0xA1) {
+                printf("%-8s V%01x", "SKIP!=", op[0] & 0x0F);
+            } else {
+                printf("Unknown instruction!");
+            }
+            break;
+        case 0xF:
+            switch (op[1]) {
+                case 0x07:
+                    printf("%-8s V%01x, DT", "MOVEDT", op[0] & 0x0F);
+                    break;
+                case 0x0A:
+                    printf("%-8s V%01x, K", "MOVEK", op[0] & 0x0F);
+                    break;
+                case 0x15:
+                    printf("%-8s DT, V%01x", "MOVEDT", op[0] & 0x0F);
+                    break;
+                case 0x18:
+                    printf("%-8s ST, V%01x", "MOVEST", op[0] & 0x0F);
+                    break;
+                case 0x1E:
+                    printf("%-8s I, V%01x", "ADDI", op[0] & 0x0F);
+                    break;
+                case 0x29:
+                    printf("%-8s F, V%01x", "MOVEF", op[0] & 0x0F);
+                    break;
+                case 0x33:
+                    printf("%-8s I, V%01x", "MOVEBCD", op[0] & 0x0F);
+                    break;
+                case 0x55:
+                    printf("%-8s [I], V0...V%01x", "MOVEARR", op[0] & 0x0F);
+                    break;
+                case 0x65:
+                    printf("%-8s V0...V%01x, [I]", "MOVEARR", op[0] & 0x0F);
+                    break;
+                default:
+                    printf("Unknown instruction!");
+            }
             break;
         default:
-            printf("%01x not handled yet!", nibble);
+            printf("Unknown instruction!");
     }
 
     printf("\n");
