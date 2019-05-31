@@ -1,13 +1,11 @@
 CC = gcc
 CCFLAGS = -Wall
 
-all: chip8
+disassembler_debug: disassembler.c
+	$(CC) $(CCFLAGS) -g disassembler.c -o disassembler
 
-chip8: chip8.c
-	$(CC) $(CCFLAGS) -O3 chip8.c -o chip8
-
-debug: chip8.c
-	$(CC) $(CCFLAGS) -g chip8.c -o chip8
+disassembler_all:
+	$(CC) $(CCFLAGS) -O3 disassembler.c -o disassembler
 
 clean:
-	rm -f chip8
+	rm -f disassembler
