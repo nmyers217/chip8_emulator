@@ -1,6 +1,8 @@
 CC = gcc
 CCFLAGS = -Wall
 
+all: disassembler_debug
+
 disassembler_debug: disassembler.c
 	$(CC) $(CCFLAGS) -g disassembler.c -o disassembler
 

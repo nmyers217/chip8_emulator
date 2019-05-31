@@ -3,11 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 // Chip8 programs start at this memory location
 // IMPORTANT: this MUST be an even number
 uint16_t const PROGRAM_START_MEMORY = 0x200;
-
 
 /**
  * Print out the disassembled instruction at the program counter
@@ -15,8 +13,7 @@ uint16_t const PROGRAM_START_MEMORY = 0x200;
  * Instruction set is available here:
  * https://github.com/mattmikolay/chip-8/wiki/CHIP‐8-Instruction-Set
  */
-void DisassembleInstruction(uint8_t const* program, uint16_t pc)
-{
+void DisassembleInstruction(uint8_t const* program, uint16_t pc) {
     assert(pc % 2 == 0);
 
     // An operation is 2 big endian bytes
@@ -93,17 +90,16 @@ void DisassembleInstruction(uint8_t const* program, uint16_t pc)
                 default:
                     printf("%01x not handled yet!", nibble);
             }
-
             break;
         }
+        case 0x9:
+            break;
         default:
             printf("%01x not handled yet!", nibble);
     }
 
-
     printf("\n");
 }
-
 
 int main(int arc, char* argv[]) {
     if (argv[1] == NULL) {
@@ -135,4 +131,3 @@ int main(int arc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-
