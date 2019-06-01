@@ -177,6 +177,8 @@ int main(int arc, char* argv[]) {
     fread(buffer + PROGRAM_START_MEMORY, fsize, 1, fp);
     fclose(fp);
 
+    assert(fsize % 2 == 0);
+
     uint16_t pc = PROGRAM_START_MEMORY;
     while (pc < fsize + PROGRAM_START_MEMORY) {
         DisassembleInstruction(buffer, pc);
