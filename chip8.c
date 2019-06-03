@@ -96,7 +96,52 @@ void tick(Chip8State* state) {
             state->v[x] += op[1];
             break;
         case 0x8:
-            // TODO: implement me
+            // TODO: debug this
+            uint8_t last_nib = op[1] & 0x0F;
+            uint8_t x = op[0] & 0x0F;
+            uint8_t y = op[1] >> 4;
+            assert(x >= 0 && x < 16 && y >= 0 && y < 16);
+
+            switch (last_nib) {
+                case 0x0:
+                    state->v[x] = state->v[y];
+                    break;
+                case 0x1:
+                    state->v[x] |= state->v[y];
+                    break;
+                case 0x2:
+                    state->v[x] &= state->v[y];
+                    break;
+                case 0x3:
+                    state->v[x] ^= state->v[y];
+                    break;
+                case 0x4:
+                    uint16_t result = state->v[x] + state->v[y];
+                    uint8_t carry = result >> 8;
+                    uint8_t lower_byte = result & 0x00FF;
+                    state->v[0xF] = carry;
+                    state->v[x] = lower_byte;
+                    break;
+                case 0x5:
+                    state->v[0xF] = state->v[x] > state->v[y];
+                    state->v[x] -= state->v[y];
+                    break;
+                case 0x6:
+                    state->v[0xF] = state->v[x] & 0b1;
+                    state->v[x] >>= 1;
+                    break;
+                case 0x7:
+                    state->v[0xF] = state->v[y] > state->v[x];
+                    state->v[x] = state->v[y] - state->v[x];
+                    break;
+                case 0xE:
+                    state->v[0xF] = (state->v[x] >> 7) & 0b1;
+                    state->v[x] <<= 1;
+                    break;
+                default:
+                    printf("Unkown operation!");
+            }
+
             break;
         default:
             printf("Unkown operation!");
