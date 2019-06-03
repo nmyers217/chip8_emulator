@@ -143,6 +143,33 @@ void tick(Chip8State* state) {
             }
 
             break;
+        case 0x9:
+            // TODO: debug this
+            uint8_t last_nib = op[1] & 0x0F;
+            if (last_nib == 0x0) {
+                uint8_t x = op[0] & 0x0F;
+                uint8_t y = op[1] >> 4;
+                assert(x >= 0 && x < 16 && y >= 0 && y < 16);
+                if (state->v[x] != state->v[y]) {
+                    state->pc += 2;
+                }
+            } else {
+                printf("Unkown operation!");
+            }
+            break;
+        case 0xA:
+            // TODO: debug
+            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
+            state->i = nnn;
+            break;
+        case 0xB:
+            // TODO: debug
+            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
+            state->pc = nnn + state->v[0];
+            break;
+        case 0xC:
+            // TODO: decide on a method for rng
+            break;
         default:
             printf("Unkown operation!");
     }
