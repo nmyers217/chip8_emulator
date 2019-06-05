@@ -127,6 +127,9 @@ uint16_t const PROGRAM_MEMORY_OFFSET = 0x200;
 uint16_t const STACK_MEMORY_OFFSET = 0xEA0;
 uint16_t const DISPLAY_MEMORY_OFFSET = 0xF00;
 
+uint8_t const SCREEN_WIDTH = 64;
+uint8_t const SCREEN_HEIGHT = 32;
+
 typedef struct Chip8State {
     uint8_t v[16];    // 16 8bit registers
     uint16_t i;       // The address register
@@ -149,6 +152,11 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size);
 void free_chip8(Chip8State* state);
 
 /**
- * Advance the state forward one tick
+ * Process a single operation
+ */
+void process_op(Chip8State* state);
+
+/**
+ * Advance the state forward one tick and process the required amount of operations
  */
 void tick(Chip8State* state);
