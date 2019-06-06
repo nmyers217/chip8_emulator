@@ -83,174 +83,150 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
     }
 }
 
+// TODO: debug
+void op_unkown(Chip8State* state, uint8_t* op) {
+    printf("%02x %02x is an uknown operation!", op[0], op[1]);
+}
+
+// TODO: debug
+static inline void op_0(Chip8State* state, uint8_t* op) {
+    if (op[1] == 0xE0) {
+        for (size_t i = DISPLAY_MEMORY_OFFSET; i < MEMORY_SIZE; i++) {
+            state->memory[i] = 0;
+        }
+    } else if (op[1] == 0xEE) {
+        state->pc = state->memory[state->sp--];
+    } else {
+        printf("Operation 0NNN not supported!");
+    }
+}
+
+// TODO: debug
+static inline void op_1(Chip8State* state, uint16_t nnn) { state->pc = nnn; }
+
+// TODO: debug
+static inline void op_2(Chip8State* state, uint16_t nnn) {
+    state->memory[++state->sp] = state->pc;
+    state->pc = nnn;
+}
+
+// TODO: debug
+static inline void op_3(Chip8State* state, uint8_t x, uint8_t nn) {
+    if (state->v[x] == nn) {
+        state->pc += 2;
+    }
+}
+
+// TODO: debug
+static inline void op_4(Chip8State* state, uint8_t x, uint8_t nn) {
+    if (state->v[x] != nn) {
+        state->pc += 2;
+    }
+}
+
+// TODO: debug
+static inline void op_5(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
+                        uint8_t n) {
+    if (n == 0x0) {
+        if (state->v[x] == state->v[y]) {
+            state->pc += 2;
+        }
+    } else {
+        op_unkown(state, op);
+    }
+}
+
+static inline void op_6(Chip8State* state, uint8_t x, uint8_t nn) {
+    state->v[x] = nn;
+}
+
+static inline void op_7(Chip8State* state, uint8_t x, uint8_t nn) {
+    state->v[x] += nn;
+}
+
+// TODO: debug
+static inline void op_8(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
+                        uint8_t n) {
+    switch (n) {
+        case 0x0: state->v[x] = state->v[y]; break;
+        case 0x1: state->v[x] |= state->v[y]; break;
+        case 0x2: state->v[x] &= state->v[y]; break;
+        case 0x3: state->v[x] ^= state->v[y]; break;
+        case 0x4: {
+            uint16_t result = state->v[x] + state->v[y];
+            uint8_t carry = result >> 8;
+            uint8_t lower_byte = result & 0x00FF;
+            state->v[0xF] = carry;
+            state->v[x] = lower_byte;
+            break;
+        }
+        case 0x5:
+            state->v[0xF] = state->v[x] > state->v[y];
+            state->v[x] -= state->v[y];
+            break;
+        case 0x6:
+            state->v[0xF] = state->v[x] & 0b1;
+            state->v[x] >>= 1;
+            break;
+        case 0x7:
+            state->v[0xF] = state->v[y] > state->v[x];
+            state->v[x] = state->v[y] - state->v[x];
+            break;
+        case 0xE:
+            state->v[0xF] = (state->v[x] >> 7) & 0b1;
+            state->v[x] <<= 1;
+            break;
+        default: op_unkown(state, op);
+    }
+}
+
+// TODO: debug
+static inline void op_9(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
+                        uint8_t n) {
+
+    if (n == 0x0) {
+        if (state->v[x] != state->v[y]) {
+            state->pc += 2;
+        }
+    } else {
+        op_unkown(state, op);
+    }
+}
+
+static inline void op_A(Chip8State* state, uint16_t nnn) { state->i = nnn; }
+
+static inline void op_B(Chip8State* state, uint16_t nnn) {
+    state->pc = nnn + state->v[0];
+}
+
 void process_op(Chip8State* state) {
     uint8_t* op = &state->memory[state->pc];
-    uint8_t nib = op[0] >> 4;
 
-    switch (nib) {
-        case 0x0: {
-            // TODO: debug this
-            if (op[1] == 0xE0) {
-                for (size_t i = DISPLAY_MEMORY_OFFSET; i < MEMORY_SIZE; i++) {
-                    state->memory[i] = 0;
-                }
-            } else if (op[1] == 0xEE) {
-                state->pc = state->memory[state->sp--];
-            } else {
-                printf("Operation 0NNN not supported!");
-            }
-            break;
-        }
-        case 0x1: {
-            // TODO: debug this
-            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
-            state->pc = nnn;
-            break;
-        }
-        case 0x2: {
-            // TODO: debug this
-            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
-            state->memory[++state->sp] = state->pc;
-            state->pc = nnn;
-            break;
-        }
-        case 0x3: {
-            // TODO: debug this
-            uint8_t x = op[0] & 0x0F;
-            assert(x >= 0 && x < 16);
-            if (state->v[x] == op[1]) {
-                state->pc += 2;
-            }
-            break;
-        }
-        case 0x4: {
-            // TODO: debug this
-            uint8_t x = op[0] & 0x0F;
-            assert(x >= 0 && x < 16);
-            if (state->v[x] != op[1]) {
-                state->pc += 2;
-            }
-            break;
-        }
-        case 0x5: {
-            // TODO: debug this
-            uint8_t last_nib = op[1] & 0x0F;
-            if (last_nib == 0x0) {
-                uint8_t x = op[0] & 0x0F;
-                uint8_t y = op[1] >> 4;
-                assert(x >= 0 && x < 16 && y >= 0 && y < 16);
-                if (state->v[x] == state->v[y]) {
-                    state->pc += 2;
-                }
-            } else {
-                printf("Unkown operation!");
-            }
-            break;
-        }
-        case 0x6: {
-            // TODO: debug this
-            uint8_t x = op[0] & 0x0F;
-            assert(x >= 0 && x < 16);
-            state->v[x] = op[1];
-            break;
-        }
-        case 0x7: {
-            // TODO: debug this
-            uint8_t x = op[0] & 0x0F;
-            assert(x >= 0 && x < 16);
-            state->v[x] += op[1];
-            break;
-        }
-        case 0x8: {
-            // TODO: debug this
-            uint8_t last_nib = op[1] & 0x0F;
-            uint8_t x = op[0] & 0x0F;
-            uint8_t y = op[1] >> 4;
-            assert(x >= 0 && x < 16 && y >= 0 && y < 16);
+    uint8_t op_code = op[0] >> 4;
 
-            switch (last_nib) {
-                case 0x0:
-                    state->v[x] = state->v[y];
-                    break;
-                case 0x1:
-                    state->v[x] |= state->v[y];
-                    break;
-                case 0x2:
-                    state->v[x] &= state->v[y];
-                    break;
-                case 0x3:
-                    state->v[x] ^= state->v[y];
-                    break;
-                case 0x4: {
-                    uint16_t result = state->v[x] + state->v[y];
-                    uint8_t carry = result >> 8;
-                    uint8_t lower_byte = result & 0x00FF;
-                    state->v[0xF] = carry;
-                    state->v[x] = lower_byte;
-                    break;
-                }
-                case 0x5:
-                    state->v[0xF] = state->v[x] > state->v[y];
-                    state->v[x] -= state->v[y];
-                    break;
-                case 0x6:
-                    state->v[0xF] = state->v[x] & 0b1;
-                    state->v[x] >>= 1;
-                    break;
-                case 0x7:
-                    state->v[0xF] = state->v[y] > state->v[x];
-                    state->v[x] = state->v[y] - state->v[x];
-                    break;
-                case 0xE:
-                    state->v[0xF] = (state->v[x] >> 7) & 0b1;
-                    state->v[x] <<= 1;
-                    break;
-                default:
-                    printf("Unkown operation!");
-            }
+    uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
+    uint8_t x = op[0] & 0x0F;
+    uint8_t y = op[1] >> 4;
+    uint8_t n = op[1] & 0x0F;
 
-            break;
-        }
-        case 0x9: {
-            // TODO: debug this
-            uint8_t last_nib = op[1] & 0x0F;
-            if (last_nib == 0x0) {
-                uint8_t x = op[0] & 0x0F;
-                uint8_t y = op[1] >> 4;
-                assert(x >= 0 && x < 16 && y >= 0 && y < 16);
-                if (state->v[x] != state->v[y]) {
-                    state->pc += 2;
-                }
-            } else {
-                printf("Unkown operation!");
-            }
-            break;
-        }
-        case 0xA: {
-            // TODO: debug
-            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
-            state->i = nnn;
-            break;
-        }
-        case 0xB: {
-            // TODO: debug
-            uint16_t nnn = ((op[0] & 0x0F) << 8) | op[1];
-            state->pc = nnn + state->v[0];
-            break;
-        }
+    switch (op_code) {
+        case 0x0: op_0(state, op); break;
+        case 0x1: op_1(state, nnn); break;
+        case 0x2: op_2(state, nnn); break;
+        case 0x3: op_3(state, x, op[1]); break;
+        case 0x4: op_4(state, x, op[1]); break;
+        case 0x5: op_5(state, op, x, y, n); break;
+        case 0x6: op_6(state, x, op[1]); break;
+        case 0x7: op_7(state, x, op[1]); break;
+        case 0x8: op_8(state, op, x, y, n); break;
+        case 0x9: op_9(state, op, x, y, n); break;
+        case 0xA: op_A(state, nnn); break;
+        case 0xB: op_B(state, nnn); break;
         case 0xC:
             // TODO: decide on a method for rng
             break;
-        case 0xD: {
-            uint8_t x = op[0] & 0x0F;
-            uint8_t y = op[1] >> 4;
-            assert(x >= 0 && x < 16 && y >= 0 && y < 16);
-            uint8_t n = op[1] & 0x0F;
-            draw_sprite(state, x, y, n);
-            break;
-        }
-        default:
-            printf("Unkown operation!");
+        case 0xD: draw_sprite(state, x, y, n); break;
+        default: op_unkown(state, op);
     }
 }
 
