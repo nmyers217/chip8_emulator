@@ -35,8 +35,8 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
 
 void free_chip8(Chip8State* state) {
     free(state->memory);
-    state->memory = NULL;
     free(state);
+    state->memory = NULL;
     state = NULL;
 }
 
