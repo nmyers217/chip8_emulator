@@ -40,49 +40,6 @@ void free_chip8(Chip8State* state) {
     state = NULL;
 }
 
-// TODO: DEFINITLEY DEBUG THIS
-void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
-    // No collision by default
-    state->v[0xF] = 0;
-
-    for (uint8_t byte = 0; byte < n; byte++) {
-        uint8_t sprite_byte = state->memory[state->i + byte];
-
-        // Iterate the bits of sprite_byte from right to left
-        for (uint8_t bit = 0; bit < 8; bit++) {
-            uint8_t sprite_bit = (sprite_byte >> bit) & 0b1;
-
-            // Pixel space coordinates
-            uint8_t pixel_y = y + byte;
-            uint8_t pixel_x = x + (7 - bit);
-
-            // Bit space index
-            uint8_t screen_bit_index = pixel_y * SCREEN_WIDTH + pixel_x;
-
-            // Addressable byte index, and a bit offset within it
-            uint8_t screen_byte_index = screen_bit_index / 8;
-            uint8_t screen_byte_off = 7 - screen_bit_index % 8;
-
-            // Actually address the byte and query the state of the bit
-            uint8_t* screen_byte = &state->display[screen_byte_index];
-            uint8_t screen_bit_state = (*screen_byte >> screen_byte_off) & 0b1;
-
-            // Calculate the new byte and query the bit again
-            uint8_t new_screen_byte =
-                *screen_byte ^ (sprite_bit << screen_byte_off);
-            uint8_t new_screen_bit_state =
-                (new_screen_byte >> screen_byte_off) & 0b1;
-
-            // Update the state
-            if (state->v[0xF] == 0 && screen_bit_state == 1 &&
-                new_screen_bit_state == 0) {
-                state->v[0xF] = 1;
-            }
-            *screen_byte = new_screen_byte;
-        }
-    }
-}
-
 // TODO: debug
 void op_unkown(Chip8State* state, uint8_t* op) {
     printf("%02x %02x is an uknown operation!", op[0], op[1]);
@@ -199,6 +156,49 @@ static inline void op_B(Chip8State* state, uint16_t nnn) {
     state->pc = nnn + state->v[0];
 }
 
+// TODO: DEFINITLEY DEBUG THIS
+void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
+    // No collision by default
+    state->v[0xF] = 0;
+
+    for (uint8_t byte = 0; byte < n; byte++) {
+        uint8_t sprite_byte = state->memory[state->i + byte];
+
+        // Iterate the bits of sprite_byte from right to left
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            uint8_t sprite_bit = (sprite_byte >> bit) & 0b1;
+
+            // Pixel space coordinates
+            uint8_t pixel_y = y + byte;
+            uint8_t pixel_x = x + (7 - bit);
+
+            // Bit space index
+            uint8_t screen_bit_index = pixel_y * SCREEN_WIDTH + pixel_x;
+
+            // Addressable byte index, and a bit offset within it
+            uint8_t screen_byte_index = screen_bit_index / 8;
+            uint8_t screen_byte_off = 7 - screen_bit_index % 8;
+
+            // Actually address the byte and query the state of the bit
+            uint8_t* screen_byte = &state->display[screen_byte_index];
+            uint8_t screen_bit_state = (*screen_byte >> screen_byte_off) & 0b1;
+
+            // Calculate the new byte and query the bit again
+            uint8_t new_screen_byte =
+                *screen_byte ^ (sprite_bit << screen_byte_off);
+            uint8_t new_screen_bit_state =
+                (new_screen_byte >> screen_byte_off) & 0b1;
+
+            // Update the state
+            if (state->v[0xF] == 0 && screen_bit_state == 1 &&
+                new_screen_bit_state == 0) {
+                state->v[0xF] = 1;
+            }
+            *screen_byte = new_screen_byte;
+        }
+    }
+}
+
 void process_op(Chip8State* state) {
     uint8_t* op = &state->memory[state->pc];
 
@@ -226,6 +226,8 @@ void process_op(Chip8State* state) {
             // TODO: decide on a method for rng
             break;
         case 0xD: draw_sprite(state, x, y, n); break;
+        case 0xE: op_unkown(state, op); break;
+        case 0xF: op_unkown(state, op); break;
         default: op_unkown(state, op);
     }
 }
