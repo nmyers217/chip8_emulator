@@ -11,7 +11,18 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
 
     Chip8State* s = calloc(1, sizeof(Chip8State));
 
+    if (s == NULL) {
+        fprintf(stderr, "Could not initialize memory!");
+        exit(EXIT_FAILURE);
+    }
+
     s->memory = calloc(1, MEMORY_SIZE);
+
+    if (s->memory == NULL) {
+        fprintf(stderr, "Could not initialize memory!");
+        exit(EXIT_FAILURE);
+    }
+
     s->pc = PROGRAM_MEMORY_OFFSET;
     s->sp = STACK_MEMORY_OFFSET;
     s->display = &s->memory[DISPLAY_MEMORY_OFFSET];
@@ -24,7 +35,9 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
 
 void free_chip8(Chip8State* state) {
     free(state->memory);
+    state->memory = NULL;
     free(state);
+    state = NULL;
 }
 
 // TODO: DEFINITLEY DEBUG THIS
@@ -244,6 +257,5 @@ void process_op(Chip8State* state) {
 int main(void) {
     Chip8State* s = init_chip8("lol", sizeof("lol"));
     free_chip8(s);
-    s = NULL;
     return EXIT_SUCCESS;
 }
