@@ -175,6 +175,47 @@ static inline void op_E(Chip8State* state, uint8_t* op, uint8_t x) {
     }
 }
 
+// TODO: debug
+static inline void op_F(Chip8State* state, uint8_t* op, uint8_t x) {
+    switch (op[1]) {
+        case 0x07: state->v[x] = state->delay; break;
+        case 0x0A:
+            // TODO: need to wait for a key press, this is platform specific
+            op_unkown(state, op);
+            break;
+        case 0x15: state->delay = state->v[x]; break;
+        case 0x18: state->sound = state->v[x]; break;
+        case 0x1E: state->i += state->v[x]; break;
+        case 0x29: {
+            state->i = state->memory[state->v[x] * FONT_SPRITE_BYTE_COUNT];
+            break;
+        }
+        case 0x33: {
+            uint8_t n = state->v[x];
+            uint8_t hundreds = n / 100;
+            uint8_t tens = (n - (hundreds * 100)) / 10;
+            uint8_t ones = n % 10;
+            state->memory[state->i] = hundreds;
+            state->memory[state->i + 1] = tens;
+            state->memory[state->i + 2] = ones;
+            break;
+        }
+        case 0x55: {
+            for (uint8_t i = 0; i < 16; i++) {
+                state->memory[state->i + i] = state->v[i];
+            }
+            break;
+        }
+        case 0x65: {
+            for (uint8_t i = 0; i < 16; i++) {
+                state->v[i] = state->memory[state->i + i];
+            }
+            break;
+        }
+        default: op_unkown(state, op);
+    }
+}
+
 // TODO: DEFINITLEY DEBUG THIS
 void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
     // No collision by default
@@ -219,7 +260,8 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
 }
 
 void print_display(Chip8State* state) {
-    for (uint16_t byte_i = 0; byte_i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; byte_i++) {
+    for (uint16_t byte_i = 0; byte_i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET;
+         byte_i++) {
         uint8_t byte = state->display[byte_i];
 
         if (byte_i % (DISPLAY_WIDTH_BITS / 8) == 0) {
@@ -261,7 +303,7 @@ void process_op(Chip8State* state) {
         case 0xC: op_C(state, x, op[1]); break;
         case 0xD: draw_sprite(state, x, y, n); break;
         case 0xE: op_E(state, op, x); break;
-        case 0xF: op_unkown(state, op); break;
+        case 0xF: op_F(state, op, x); break;
         default: op_unkown(state, op);
     }
 
