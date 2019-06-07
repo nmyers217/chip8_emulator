@@ -155,6 +155,26 @@ static inline void op_B(Chip8State* state, uint16_t nnn) {
     state->pc = nnn + state->v[0];
 }
 
+// TODO: debug
+static inline void op_C(Chip8State* state, uint8_t x, uint8_t nn) {
+    state->v[x] = (rand() % 255) & nn;
+}
+
+// TODO: debug
+static inline void op_D(Chip8State* state, uint8_t* op, uint8_t x) {
+    if (op[1] == 0x9E) {
+        if (state->keys[KEY_TO_INDEX_MAPPING[state->v[x]]] == 1) {
+            state->pc += 2;
+        }
+    } else if (op[1] == 0xA1) {
+        if (state->keys[KEY_TO_INDEX_MAPPING[state->v[x]]] == 0) {
+            state->pc += 2;
+        }
+    } else {
+        op_unkown(state, op);
+    }
+}
+
 // TODO: DEFINITLEY DEBUG THIS
 void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
     // No collision by default
@@ -198,6 +218,22 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
     }
 }
 
+void print_display(Chip8State* state) {
+    for (uint16_t byte_i = 0; byte_i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; byte_i++) {
+        uint8_t byte = state->display[byte_i];
+
+        if (byte_i % (DISPLAY_WIDTH_BITS / 8) == 0) {
+            printf("\n");
+        }
+
+        for (uint8_t bit_i = 0; bit_i < 8; bit_i++) {
+            uint8_t bit = (byte >> (7 - bit_i)) & 0b1;
+            printf("%c", bit ? '#' : ' ');
+        }
+    }
+    printf("\n");
+}
+
 void process_op(Chip8State* state) {
     // TODO: catch when pc is invalid?
     uint8_t* op = &state->memory[state->pc];
@@ -222,9 +258,7 @@ void process_op(Chip8State* state) {
         case 0x9: op_9(state, op, x, y, n); break;
         case 0xA: op_A(state, nnn); break;
         case 0xB: op_B(state, nnn); break;
-        case 0xC:
-            // TODO: decide on a method for rng
-            break;
+        case 0xC: op_C(state, x, op[1]); break;
         case 0xD: draw_sprite(state, x, y, n); break;
         case 0xE: op_unkown(state, op); break;
         case 0xF: op_unkown(state, op); break;
@@ -232,22 +266,6 @@ void process_op(Chip8State* state) {
     }
 
     state->pc += 2;
-}
-
-void print_display(Chip8State* state) {
-    for (uint16_t byte_i = 0; byte_i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; byte_i++) {
-        uint8_t byte = state->display[byte_i];
-
-        if (byte_i % (DISPLAY_WIDTH_BITS / 8) == 0) {
-            printf("\n");
-        }
-
-        for (uint8_t bit_i = 0; bit_i < 8; bit_i++) {
-            uint8_t bit = (byte >> (7 - bit_i)) & 0b1;
-            printf("%c", bit ? '#' : ' ');
-        }
-    }
-    printf("\n");
 }
 
 int main(int32_t argc, char const* argv[]) {
@@ -278,6 +296,7 @@ int main(int32_t argc, char const* argv[]) {
     free(buffer);
     buffer = NULL;
 
+    // TODO: how do we know when the program ends?
     for (uint8_t o = 0; o < 128; o++) {
         process_op(s);
     }
