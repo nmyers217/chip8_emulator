@@ -12,14 +12,14 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
     Chip8State* s = calloc(1, sizeof(Chip8State));
 
     if (s == NULL) {
-        fprintf(stderr, "Could not initialize memory!");
+        fprintf(stderr, "Could not initialize memory!\n");
         exit(EXIT_FAILURE);
     }
 
     s->memory = calloc(1, MEMORY_SIZE);
 
     if (s->memory == NULL) {
-        fprintf(stderr, "Could not initialize memory!");
+        fprintf(stderr, "Could not initialize memory!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -41,7 +41,7 @@ void free_chip8(Chip8State* state) {
 }
 
 void op_unkown(Chip8State* state, uint8_t* op) {
-    printf("%02x %02x is an uknown operation!", op[0], op[1]);
+    printf("%02x %02x is an uknown operation!\n", op[0], op[1]);
 }
 
 // TODO: debug
@@ -53,7 +53,7 @@ static inline void op_0(Chip8State* state, uint8_t* op) {
     } else if (op[1] == 0xEE) {
         state->pc = state->memory[state->sp--];
     } else {
-        printf("Operation 0NNN not supported!");
+        printf("Operation 0NNN not supported!\n");
     }
 }
 
@@ -278,7 +278,7 @@ int main(int32_t argc, char const* argv[]) {
     free(buffer);
     buffer = NULL;
 
-    for (uint8_t o = 0; o < 64; o++) {
+    for (uint8_t o = 0; o < 128; o++) {
         process_op(s);
     }
     print_display(s);
