@@ -35,12 +35,11 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
 
 void free_chip8(Chip8State* state) {
     free(state->memory);
-    free(state);
     state->memory = NULL;
-    state = NULL;
+    state->display = NULL;
+    free(state);
 }
 
-// TODO: debug
 void op_unkown(Chip8State* state, uint8_t* op) {
     printf("%02x %02x is an uknown operation!", op[0], op[1]);
 }
@@ -200,6 +199,7 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
 }
 
 void process_op(Chip8State* state) {
+    // TODO: catch when pc is invalid?
     uint8_t* op = &state->memory[state->pc];
 
     uint8_t op_code = op[0] >> 4;
@@ -230,10 +230,42 @@ void process_op(Chip8State* state) {
         case 0xF: op_unkown(state, op); break;
         default: op_unkown(state, op);
     }
+
+    state->pc += 2;
 }
 
-int main(void) {
-    Chip8State* s = init_chip8("lol", sizeof("lol"));
+int main(int32_t argc, char const* argv[]) {
+    if (!argv[1]) {
+        fprintf(stderr, "Usage: %s <chip8_rom.ch8>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* fp = fopen(argv[1], "rb");
+    if (fp == NULL) {
+        fprintf(stderr, "Error: could not open file %s\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(fp, 0L, SEEK_END);
+    uint32_t fsize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+
+    uint8_t* buffer = malloc(fsize);
+    fread(buffer, fsize, 1, fp);
+    fclose(fp);
+
+    assert(fsize % 2 == 0);
+
+    Chip8State* s = init_chip8(buffer, fsize);
+    free(buffer);
+    buffer = NULL;
+
+    process_op(s);
+    process_op(s);
+    process_op(s);
+
     free_chip8(s);
+    s = NULL;
+
     return EXIT_SUCCESS;
 }
