@@ -161,7 +161,7 @@ static inline void op_C(Chip8State* state, uint8_t x, uint8_t nn) {
 }
 
 // TODO: debug
-static inline void op_D(Chip8State* state, uint8_t* op, uint8_t x) {
+static inline void op_E(Chip8State* state, uint8_t* op, uint8_t x) {
     if (op[1] == 0x9E) {
         if (state->keys[KEY_TO_INDEX_MAPPING[state->v[x]]] == 1) {
             state->pc += 2;
@@ -260,7 +260,7 @@ void process_op(Chip8State* state) {
         case 0xB: op_B(state, nnn); break;
         case 0xC: op_C(state, x, op[1]); break;
         case 0xD: draw_sprite(state, x, y, n); break;
-        case 0xE: op_unkown(state, op); break;
+        case 0xE: op_E(state, op, x); break;
         case 0xF: op_unkown(state, op); break;
         default: op_unkown(state, op);
     }
