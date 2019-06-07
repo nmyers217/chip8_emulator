@@ -47,8 +47,8 @@ void op_unkown(Chip8State* state, uint8_t* op) {
 // TODO: debug
 static inline void op_0(Chip8State* state, uint8_t* op) {
     if (op[1] == 0xE0) {
-        for (size_t i = DISPLAY_MEMORY_OFFSET; i < MEMORY_SIZE; i++) {
-            state->memory[i] = 0;
+        for (uint16_t i = 0; i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; i++) {
+            state->display[i] = 0;
         }
     } else if (op[1] == 0xEE) {
         state->pc = state->memory[state->sp--];
@@ -172,10 +172,10 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
             uint8_t pixel_x = x + (7 - bit);
 
             // Bit space index
-            uint8_t screen_bit_index = pixel_y * SCREEN_WIDTH + pixel_x;
+            uint16_t screen_bit_index = pixel_y * DISPLAY_WIDTH_BITS + pixel_x;
 
             // Addressable byte index, and a bit offset within it
-            uint8_t screen_byte_index = screen_bit_index / 8;
+            uint16_t screen_byte_index = screen_bit_index / 8;
             uint8_t screen_byte_off = 7 - screen_bit_index % 8;
 
             // Actually address the byte and query the state of the bit
@@ -234,6 +234,22 @@ void process_op(Chip8State* state) {
     state->pc += 2;
 }
 
+void print_display(Chip8State* state) {
+    for (uint16_t byte_i = 0; byte_i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; byte_i++) {
+        uint8_t byte = state->display[byte_i];
+
+        if (byte_i % (DISPLAY_WIDTH_BITS / 8) == 0) {
+            printf("\n");
+        }
+
+        for (uint8_t bit_i = 0; bit_i < 8; bit_i++) {
+            uint8_t bit = (byte >> (7 - bit_i)) & 0b1;
+            printf("%c", bit ? '#' : ' ');
+        }
+    }
+    printf("\n");
+}
+
 int main(int32_t argc, char const* argv[]) {
     if (!argv[1]) {
         fprintf(stderr, "Usage: %s <chip8_rom.ch8>\n", argv[0]);
@@ -256,13 +272,16 @@ int main(int32_t argc, char const* argv[]) {
 
     assert(fsize % 2 == 0);
 
+    printf("Loaded rom: %s\n", argv[1]);
+
     Chip8State* s = init_chip8(buffer, fsize);
     free(buffer);
     buffer = NULL;
 
-    process_op(s);
-    process_op(s);
-    process_op(s);
+    for (uint8_t o = 0; o < 64; o++) {
+        process_op(s);
+    }
+    print_display(s);
 
     free_chip8(s);
     s = NULL;

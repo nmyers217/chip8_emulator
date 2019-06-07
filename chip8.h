@@ -33,8 +33,8 @@ uint16_t const STACK_MEMORY_OFFSET = 0xEA0;
 uint16_t const DISPLAY_MEMORY_OFFSET = 0xF00;
 
 // The screen dimensions
-uint8_t const SCREEN_WIDTH = 64;
-uint8_t const SCREEN_HEIGHT = 32;
+uint8_t const DISPLAY_WIDTH_BITS = 64;
+uint8_t const DISPLAY_HEIGHT_BITS = 32;
 
 // Constants for the keyboard
 //
