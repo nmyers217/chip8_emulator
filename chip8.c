@@ -61,7 +61,9 @@ static inline uint8_t op_0(Chip8State* state, uint8_t* op) {
     return 0;
 }
 
-static inline void op_1(Chip8State* state, uint16_t nnn) { state->pc = nnn; }
+static inline void op_1(Chip8State* state, uint16_t nnn) {
+    state->pc = nnn - 2;
+}
 
 // TODO: debug
 static inline void op_2(Chip8State* state, uint16_t nnn) {
@@ -74,21 +76,18 @@ static inline void op_2(Chip8State* state, uint16_t nnn) {
     state->pc = nnn;
 }
 
-// TODO: debug
 static inline void op_3(Chip8State* state, uint8_t x, uint8_t nn) {
     if (state->v[x] == nn) {
         state->pc += 2;
     }
 }
 
-// TODO: debug
 static inline void op_4(Chip8State* state, uint8_t x, uint8_t nn) {
     if (state->v[x] != nn) {
         state->pc += 2;
     }
 }
 
-// TODO: debug
 static inline void op_5(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
                         uint8_t n) {
     if (n == 0x0) {
@@ -108,7 +107,6 @@ static inline void op_7(Chip8State* state, uint8_t x, uint8_t nn) {
     state->v[x] += nn;
 }
 
-// TODO: debug
 static inline void op_8(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
                         uint8_t n) {
     switch (n) {
@@ -144,7 +142,6 @@ static inline void op_8(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
     }
 }
 
-// TODO: debug
 static inline void op_9(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
                         uint8_t n) {
 
@@ -183,7 +180,6 @@ static inline void op_E(Chip8State* state, uint8_t* op, uint8_t x) {
     }
 }
 
-// TODO: debug
 static inline void op_F(Chip8State* state, uint8_t* op, uint8_t x) {
     switch (op[1]) {
         case 0x07: state->v[x] = state->delay; break;
