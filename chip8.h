@@ -32,6 +32,9 @@ uint16_t const PROGRAM_MEMORY_OFFSET = 0x200;
 uint16_t const STACK_MEMORY_OFFSET = 0xEA0;
 uint16_t const DISPLAY_MEMORY_OFFSET = 0xF00;
 
+// How many stack frames we support
+uint8_t const MAX_STACK_FRAMES = 16;
+
 // The screen dimensions
 uint8_t const DISPLAY_WIDTH_BITS = 64;
 uint8_t const DISPLAY_HEIGHT_BITS = 32;
@@ -94,8 +97,10 @@ void free_chip8(Chip8State* state);
 
 /**
  * Process a single operation
+ *
+ * Returns 1 if the program has ended, 0 otherwise
  */
-void process_op(Chip8State* state);
+uint8_t process_op(Chip8State* state);
 
 /**
  * Advance the state forward one tick and process the required amount of

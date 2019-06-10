@@ -22,7 +22,6 @@ Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
         fprintf(stderr, "Could not initialize memory!\n");
         exit(EXIT_FAILURE);
     }
-
     s->pc = PROGRAM_MEMORY_OFFSET;
     s->sp = STACK_MEMORY_OFFSET;
     s->display = &s->memory[DISPLAY_MEMORY_OFFSET];
@@ -45,24 +44,33 @@ void op_unkown(Chip8State* state, uint8_t* op) {
 }
 
 // TODO: debug
-static inline void op_0(Chip8State* state, uint8_t* op) {
+static inline uint8_t op_0(Chip8State* state, uint8_t* op) {
     if (op[1] == 0xE0) {
         for (uint16_t i = 0; i < MEMORY_SIZE - DISPLAY_MEMORY_OFFSET; i++) {
             state->display[i] = 0;
         }
     } else if (op[1] == 0xEE) {
-        state->pc = state->memory[state->sp--];
+        state->pc = state->memory[state->sp];
+        state->sp -= 2;
+        if (state->sp < STACK_MEMORY_OFFSET) {
+            return 1;
+        }
     } else {
         printf("Operation 0NNN not supported!\n");
     }
+    return 0;
 }
 
-// TODO: debug
 static inline void op_1(Chip8State* state, uint16_t nnn) { state->pc = nnn; }
 
 // TODO: debug
 static inline void op_2(Chip8State* state, uint16_t nnn) {
-    state->memory[++state->sp] = state->pc;
+    state->sp += 2;
+    if (state->sp >= STACK_MEMORY_OFFSET + (MAX_STACK_FRAMES * 2)) {
+        fprintf(stderr, "STACK OVERFLOW!\n");
+        exit(EXIT_FAILURE);
+    }
+    state->memory[state->sp] = state->pc;
     state->pc = nnn;
 }
 
@@ -216,7 +224,7 @@ static inline void op_F(Chip8State* state, uint8_t* op, uint8_t x) {
     }
 }
 
-// TODO: DEFINITLEY DEBUG THIS
+// TODO: clipping and wrapping?
 void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
     // No collision by default
     state->v[0xF] = 0;
@@ -229,8 +237,8 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
             uint8_t sprite_bit = (sprite_byte >> bit) & 0b1;
 
             // Pixel space coordinates
-            uint8_t pixel_y = y + byte;
-            uint8_t pixel_x = x + (7 - bit);
+            uint8_t pixel_y = state->v[y] + byte;
+            uint8_t pixel_x = state->v[x] + (7 - bit);
 
             // Bit space index
             uint16_t screen_bit_index = pixel_y * DISPLAY_WIDTH_BITS + pixel_x;
@@ -276,8 +284,12 @@ void print_display(Chip8State* state) {
     printf("\n");
 }
 
-void process_op(Chip8State* state) {
-    // TODO: catch when pc is invalid?
+uint8_t process_op(Chip8State* state) {
+    if (state->pc < PROGRAM_MEMORY_OFFSET || state->pc >= STACK_MEMORY_OFFSET) {
+        fprintf(stderr, "The pc %04x is not valid!", state->pc);
+        exit(EXIT_FAILURE);
+    }
+
     uint8_t* op = &state->memory[state->pc];
 
     uint8_t op_code = op[0] >> 4;
@@ -287,8 +299,14 @@ void process_op(Chip8State* state) {
     uint8_t y = op[1] >> 4;
     uint8_t n = op[1] & 0x0F;
 
+    printf("Processing pc %04x: %02x %02x\n", state->pc, op[0], op[1]);
+
     switch (op_code) {
-        case 0x0: op_0(state, op); break;
+        case 0x0:
+            if (op_0(state, op)) {
+                return 1;
+            }
+            break;
         case 0x1: op_1(state, nnn); break;
         case 0x2: op_2(state, nnn); break;
         case 0x3: op_3(state, x, op[1]); break;
@@ -308,6 +326,8 @@ void process_op(Chip8State* state) {
     }
 
     state->pc += 2;
+
+    return 0;
 }
 
 int main(int32_t argc, char const* argv[]) {
@@ -338,11 +358,11 @@ int main(int32_t argc, char const* argv[]) {
     free(buffer);
     buffer = NULL;
 
-    // TODO: how do we know when the program ends?
-    for (uint8_t o = 0; o < 128; o++) {
-        process_op(s);
+    uint8_t is_over = 0;
+    while (!is_over) {
+        is_over = process_op(s);
+        print_display(s);
     }
-    print_display(s);
 
     free_chip8(s);
     s = NULL;
