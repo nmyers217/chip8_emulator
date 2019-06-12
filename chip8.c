@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +6,10 @@
 
 Chip8State* init_chip8(uint8_t* const program_buffer, size_t program_size) {
     // We should stop if the program is too big
-    assert(program_size < MEMORY_SIZE - PROGRAM_MEMORY_OFFSET);
+    if (program_size >= MEMORY_SIZE - PROGRAM_MEMORY_OFFSET) {
+        fprintf(stderr, "This program is too large!");
+        exit(EXIT_FAILURE);
+    }
 
     Chip8State* s = calloc(1, sizeof(Chip8State));
 
@@ -345,8 +347,6 @@ int main(int32_t argc, char const* argv[]) {
     uint8_t* buffer = malloc(fsize);
     fread(buffer, fsize, 1, fp);
     fclose(fp);
-
-    assert(fsize % 2 == 0);
 
     printf("Loaded rom: %s\n", argv[1]);
 
