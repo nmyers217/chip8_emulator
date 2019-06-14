@@ -5,32 +5,33 @@
 // Chip8 programs have 4096 bytes of memory
 uint16_t const MEMORY_SIZE = 1024 * 4;
 
-// This font data needs to be loaded into memory for programs to use
-#define FONT_SPRITE_COUNT 16
-#define FONT_SPRITE_BYTE_COUNT 5
-uint8_t const FONT_DATA[FONT_SPRITE_COUNT][FONT_SPRITE_BYTE_COUNT] = {
-    {0b11110000, 0b10010000, 0b10010000, 0b10010000, 0b11110000},
-    {0b00100000, 0b01100000, 0b00100000, 0b00100000, 0b01110000},
-    {0b11110000, 0b00010000, 0b11110000, 0b10000000, 0b11110000},
-    {0b11110000, 0b00010000, 0b11110000, 0b00010000, 0b11110000},
-    {0b10010000, 0b10010000, 0b11110000, 0b00010000, 0b00010000},
-    {0b11110000, 0b10000000, 0b11110000, 0b00010000, 0b11110000},
-    {0b11110000, 0b10000000, 0b11110000, 0b10010000, 0b11110000},
-    {0b11110000, 0b00010000, 0b00100000, 0b01000000, 0b01000000},
-    {0b11110000, 0b10010000, 0b11110000, 0b10010000, 0b11110000},
-    {0b11110000, 0b10010000, 0b11110000, 0b00010000, 0b11110000},
-    {0b11110000, 0b10010000, 0b11110000, 0b10010000, 0b10010000},
-    {0b11100000, 0b10010000, 0b11100000, 0b10010000, 0b11100000},
-    {0b11110000, 0b10000000, 0b10000000, 0b10000000, 0b11110000},
-    {0b11100000, 0b10010000, 0b10010000, 0b10010000, 0b11100000},
-    {0b11110000, 0b10000000, 0b11110000, 0b10000000, 0b11110000},
-    {0b11110000, 0b10000000, 0b11110000, 0b10000000, 0b10000000}};
-
 // These constants are the memory map
 uint16_t const FONT_MEMORY_OFFSET = 0x0;
 uint16_t const PROGRAM_MEMORY_OFFSET = 0x200;
 uint16_t const STACK_MEMORY_OFFSET = 0xEA0;
 uint16_t const DISPLAY_MEMORY_OFFSET = 0xF00;
+
+// This font data needs to be loaded into memory for programs to use
+#define FONT_SPRITE_COUNT 16
+#define FONT_SPRITE_BYTE_COUNT 5
+uint8_t const FONT_DATA[FONT_SPRITE_COUNT][FONT_SPRITE_BYTE_COUNT] = {
+    {0xF0, 0x90, 0x90, 0x90, 0xF0}, // 0
+    {0x20, 0x60, 0x20, 0x20, 0x70}, // 1
+    {0xF0, 0x10, 0xF0, 0x80, 0xF0}, // 2
+    {0xF0, 0x10, 0xF0, 0x10, 0xF0}, // 3
+    {0x90, 0x90, 0xF0, 0x10, 0x10}, // 4
+    {0xF0, 0x80, 0xF0, 0x10, 0xF0}, // 5
+    {0xF0, 0x80, 0xF0, 0x90, 0xF0}, // 6
+    {0xF0, 0x10, 0x20, 0x40, 0x40}, // 7
+    {0xF0, 0x90, 0xF0, 0x90, 0xF0}, // 8
+    {0xF0, 0x90, 0xF0, 0x10, 0xF0}, // 9
+    {0xF0, 0x90, 0xF0, 0x90, 0x90}, // A
+    {0xE0, 0x90, 0xE0, 0x90, 0xE0}, // B
+    {0xF0, 0x80, 0x80, 0x80, 0xF0}, // C
+    {0xE0, 0x90, 0x90, 0x90, 0xE0}, // D
+    {0xF0, 0x80, 0xF0, 0x80, 0xF0}, // E
+    {0xF0, 0x80, 0xF0, 0x80, 0x80}  // F
+};
 
 // How many stack frames we support
 uint8_t const MAX_STACK_FRAMES = 16;

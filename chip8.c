@@ -129,7 +129,7 @@ static inline void op_8(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
             state->v[x] -= state->v[y];
             break;
         case 0x6:
-            state->v[0xF] = state->v[x] & 0b1;
+            state->v[0xF] = state->v[x] & 1;
             state->v[x] >>= 1;
             break;
         case 0x7:
@@ -137,7 +137,7 @@ static inline void op_8(Chip8State* state, uint8_t* op, uint8_t x, uint8_t y,
             state->v[x] = state->v[y] - state->v[x];
             break;
         case 0xE:
-            state->v[0xF] = (state->v[x] >> 7) & 0b1;
+            state->v[0xF] = (state->v[x] >> 7) & 1;
             state->v[x] <<= 1;
             break;
         default: op_unkown(state, op);
@@ -232,7 +232,7 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
 
         // Iterate the bits of sprite_byte from right to left
         for (uint8_t bit = 0; bit < 8; bit++) {
-            uint8_t sprite_bit = (sprite_byte >> bit) & 0b1;
+            uint8_t sprite_bit = (sprite_byte >> bit) & 1;
 
             // Pixel space coordinates
             uint8_t pixel_y = state->v[y] + byte;
@@ -247,13 +247,13 @@ void draw_sprite(Chip8State* state, uint8_t x, uint8_t y, uint8_t n) {
 
             // Actually address the byte and query the state of the bit
             uint8_t* screen_byte = &state->display[screen_byte_index];
-            uint8_t screen_bit_state = (*screen_byte >> screen_byte_off) & 0b1;
+            uint8_t screen_bit_state = (*screen_byte >> screen_byte_off) & 1;
 
             // Calculate the new byte and query the bit again
             uint8_t new_screen_byte =
                 *screen_byte ^ (sprite_bit << screen_byte_off);
             uint8_t new_screen_bit_state =
-                (new_screen_byte >> screen_byte_off) & 0b1;
+                (new_screen_byte >> screen_byte_off) & 1;
 
             // Update the state
             if (state->v[0xF] == 0 && screen_bit_state == 1 &&
@@ -275,7 +275,7 @@ void print_display(Chip8State* state) {
         }
 
         for (uint8_t bit_i = 0; bit_i < 8; bit_i++) {
-            uint8_t bit = (byte >> (7 - bit_i)) & 0b1;
+            uint8_t bit = (byte >> (7 - bit_i)) & 1;
             printf("%c", bit ? '#' : ' ');
         }
     }
