@@ -1,7 +1,7 @@
 .POSIX:
 .SUFFIXES:
 CC = cc
-CFLAGS = -std=c99 -Wall -Wextra -Wpedantic
+CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter
 
 all: chip8_debug
 

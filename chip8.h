@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "config.h"
 
 // Chip8 programs have 4096 bytes of memory
 uint16_t const MEMORY_SIZE = 1024 * 4;
